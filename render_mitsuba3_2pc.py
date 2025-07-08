@@ -53,16 +53,22 @@ def read_ply(path):
     ply = PlyData.read(path)
     vertex = ply['vertex']
     (x, y, z) = (vertex[t] for t in ('x', 'y', 'z'))
-    (r, g, b) = (vertex[t] for t in ('red', 'green', 'blue'))
-
     pcl_time = np.column_stack((x, y, z))
-    pcl_time_rgb = np.column_stack((r, g, b))
+
+    if all(t in vertex.data.dtype.names for t in ('red', 'green', 'blue')):
+        (r, g, b) = (vertex[t] for t in ('red', 'green', 'blue'))
+        pcl_time_rgb = np.column_stack((r, g, b))
+    else:
+        pcl_time_rgb = None    
+    
     if len(np.shape(pcl_time)) < 3:
         new_size = (1,) + np.shape(pcl_time)
         pcl_time.resize(new_size)
-        pcl_time_rgb.resize(new_size)
+        if pcl_time_rgb is not None:
+            pcl_time_rgb.resize(new_size)
 
     return pcl_time, pcl_time_rgb
+
 
 
 def read_obj(path):
